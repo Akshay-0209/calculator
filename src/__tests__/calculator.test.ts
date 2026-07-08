@@ -1,6 +1,8 @@
 import { add, subtract, multiply, divide } from '../calculator';
 
 describe('Calculator Functions', () => {
+  // Existing tests ...
+
   describe('add', () => {
     it('adds two positive integers', () => {
       expect(add(2, 3)).toBe(5);
@@ -69,6 +71,43 @@ describe('Calculator Functions', () => {
     });
     it('throws error on divide by zero', () => {
       expect(() => divide(5, 0)).toThrowError('Cannot divide by zero');
+    });
+  });
+
+  describe('edge cases and validation', () => {
+    it('throws on NaN input', () => {
+      expect(() => add(NaN, 2)).toThrow('Inputs must be finite numbers');
+      expect(() => subtract(2, NaN)).toThrow('Inputs must be finite numbers');
+      expect(() => multiply(NaN, NaN)).toThrow('Inputs must be finite numbers');
+      expect(() => divide(2, NaN)).toThrow('Inputs must be finite numbers');
+    });
+
+    it('throws on Infinity or -Infinity input', () => {
+      expect(() => add(Infinity, 1)).toThrow('Inputs must be finite numbers');
+      expect(() => subtract(-Infinity, 1)).toThrow('Inputs must be finite numbers');
+      expect(() => multiply(1, Infinity)).toThrow('Inputs must be finite numbers');
+      expect(() => divide(-Infinity, 1)).toThrow('Inputs must be finite numbers');
+    });
+
+    it('handles -0 as valid input and distinguishes from 0', () => {
+      expect(add(-0, 0)).toBe(0);
+      expect(1 / add(-0, 0)).toBe(Infinity); // 1/0 is Infinity
+      expect(multiply(-0, 5)).toBe(-0);
+      expect(Object.is(multiply(-0, 5), -0)).toBe(true);
+    });
+
+    it('throws on non-number types', () => {
+      const values: any[] = [null, undefined, '', '1', {}, [], true, false];
+      for (const val of values) {
+        expect(() => add(val, 1)).toThrow('Inputs must be finite numbers');
+        expect(() => subtract(1, val)).toThrow('Inputs must be finite numbers');
+        expect(() => multiply(val, 2)).toThrow('Inputs must be finite numbers');
+        expect(() => divide(val, 2)).toThrow('Inputs must be finite numbers');
+      }
+    });
+
+    it('divide by -0 throws divide by zero error', () => {
+      expect(() => divide(5, -0)).toThrow('Cannot divide by zero');
     });
   });
 });
