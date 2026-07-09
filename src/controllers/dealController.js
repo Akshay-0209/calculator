@@ -1,1 +1,2 @@
-// Deal controller skeleton
+// dealController skeleton
+module.exports = {};
