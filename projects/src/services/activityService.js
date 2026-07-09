@@ -1,0 +1,2 @@
+// activityService skeleton
+module.exports = {};
