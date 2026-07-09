@@ -1,0 +1,2 @@
+// activityController skeleton
+module.exports = {};
