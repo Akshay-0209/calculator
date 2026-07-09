@@ -1,0 +1,2 @@
+// customerService skeleton
+module.exports = {};
