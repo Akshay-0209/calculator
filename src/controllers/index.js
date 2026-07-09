@@ -1,1 +1,3 @@
-// Controllers index placeholder
+// Export all controllers
+module.exports = {
+};
