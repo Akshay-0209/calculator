@@ -1,0 +1,11 @@
+module.exports = (db) => {
+  db.run(`CREATE TABLE IF NOT EXISTS Notes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userId INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES Users(id) ON DELETE CASCADE
+  )`);
+};
