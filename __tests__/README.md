@@ -1,0 +1,1 @@
+Jest unit tests for calculator logic. Run with `npm test`.
