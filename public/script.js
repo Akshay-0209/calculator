@@ -1,157 +1,114 @@
-const display = document.getElementById('display');
-let current = '0';
-let operand = null;
-let operator = null;
-let waitingForOperand = false;
+(function() {
+  // Calculator logic
+  const display = document.getElementById('display');
+  let current = '0', operator = null, operand = null, resetNext = false;
 
-function updateDisplay() {
-  display.textContent = current;
-}
-
-function inputDigit(digit) {
-  if (waitingForOperand) {
-    current = digit;
-    waitingForOperand = false;
-  } else {
-    if (current === '0') {
-      current = digit;
-    } else {
-      current += digit;
-    }
+  function setDisplay(val) {
+    display.textContent = val;
   }
-}
 
-function inputDecimal() {
-  if (waitingForOperand) {
-    current = '0.';
-    waitingForOperand = false;
-    return;
-  }
-  if (!current.includes('.')) {
-    current += '.';
-  }
-}
-
-function clearCalculator() {
-  current = '0';
-  operand = null;
-  operator = null;
-  waitingForOperand = false;
-}
-
-function backspace() {
-  if (waitingForOperand || current.length === 1) {
+  function clear() {
     current = '0';
-    waitingForOperand = false;
-  } else {
-    current = current.slice(0, -1);
-  }
-}
-
-function handleOperator(nextOperator) {
-  const inputValue = parseFloat(current);
-  if (operator && waitingForOperand) {
-    operator = nextOperator;
-    return;
-  }
-  if (operand == null && !isNaN(inputValue)) {
-    operand = inputValue;
-  } else if (operator) {
-    try {
-      operand = operate(operator, operand, inputValue);
-      current = String(operand);
-    } catch (e) {
-      current = 'Error';
-      operand = null;
-      operator = null;
-      waitingForOperand = false;
-      updateDisplay();
-      return;
-    }
-  }
-  operator = nextOperator;
-  waitingForOperand = true;
-}
-
-function operate(operator, a, b) {
-  switch (operator) {
-    case '+':
-      return window.calculator.add(a, b);
-    case '-':
-      return window.calculator.subtract(a, b);
-    case '×':
-      return window.calculator.multiply(a, b);
-    case '÷':
-      return window.calculator.divide(a, b);
-    default:
-      return b;
-  }
-}
-
-function handleEquals() {
-  if (operator && operand != null && !waitingForOperand) {
-    const inputValue = parseFloat(current);
-    try {
-      current = String(operate(operator, operand, inputValue));
-    } catch (e) {
-      current = 'Error';
-    }
-    operand = null;
     operator = null;
-    waitingForOperand = false;
+    operand = null;
+    resetNext = false;
+    setDisplay(current);
   }
-}
 
-document.querySelector('.calculator-buttons').addEventListener('click', (e) => {
-  if (!e.target.matches('button')) return;
-  const action = e.target.dataset.action;
-  if (action >= '0' && action <= '9') {
-    inputDigit(action);
-    updateDisplay();
-    return;
+  function backspace() {
+    if (resetNext) return;
+    if (current.length > 1) {
+      current = current.slice(0, -1);
+    } else {
+      current = '0';
+    }
+    setDisplay(current);
   }
-  switch (action) {
-    case 'decimal':
-      inputDecimal();
-      break;
-    case 'clear':
-      clearCalculator();
-      break;
-    case 'backspace':
-      backspace();
-      break;
-    case 'add':
-      handleOperator('+');
-      break;
-    case 'subtract':
-      handleOperator('-');
-      break;
-    case 'multiply':
-      handleOperator('×');
-      break;
-    case 'divide':
-      handleOperator('÷');
-      break;
-    case 'equals':
-      handleEquals();
-      break;
-    default:
-      break;
-  }
-  updateDisplay();
-});
 
-// Calculator logic
-window.calculator = {
-  add: (a, b) => a + b,
-  subtract: (a, b) => a - b,
-  multiply: (a, b) => a * b,
-  divide: (a, b) => {
-    if (!Number.isFinite(a) || !Number.isFinite(b)) throw new Error('Invalid number');
-    if (b === 0) throw new Error('Divide by zero');
-    return a / b;
+  function inputNumber(num) {
+    if (resetNext) {
+      current = num;
+      resetNext = false;
+    } else {
+      if (current === '0') current = num;
+      else current += num;
+    }
+    setDisplay(current);
   }
-};
 
-// Replace window.calculator methods with server-tested ones if loaded
-updateDisplay();
+  function inputDecimal() {
+    if (resetNext) {
+      current = '0.';
+      resetNext = false;
+    } else if (!current.includes('.')) {
+      current += '.';
+    }
+    setDisplay(current);
+  }
+
+  function inputOperator(op) {
+    if (operator && !resetNext) {
+      compute();
+    }
+    operand = parseFloat(current);
+    operator = op;
+    resetNext = true;
+  }
+
+  function compute() {
+    if (operator && operand != null) {
+      let result;
+      const currVal = parseFloat(current);
+      try {
+        switch (operator) {
+          case '+': result = window.calculator.add(operand, currVal); break;
+          case '-': result = window.calculator.subtract(operand, currVal); break;
+          case '×': result = window.calculator.multiply(operand, currVal); break;
+          case '÷': result = window.calculator.divide(operand, currVal); break;
+        }
+        if (!isFinite(result)) throw new Error('Error');
+        current = result.toString();
+        setDisplay(current);
+        operator = null;
+        operand = null;
+        resetNext = true;
+      } catch (e) {
+        setDisplay('Error');
+        current = '0';
+        operator = null;
+        operand = null;
+        resetNext = true;
+      }
+    }
+  }
+
+  document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      if (btn.dataset.number !== undefined) {
+        inputNumber(btn.dataset.number);
+      } else if (btn.dataset.action) {
+        switch (btn.dataset.action) {
+          case 'clear': clear(); break;
+          case 'backspace': backspace(); break;
+          case 'decimal': inputDecimal(); break;
+          case 'add': inputOperator('+'); break;
+          case 'subtract': inputOperator('-'); break;
+          case 'multiply': inputOperator('×'); break;
+          case 'divide': inputOperator('÷'); break;
+          case 'equals': compute(); break;
+        }
+      }
+    });
+  });
+
+  // Simple calculator library for client
+  window.calculator = {
+    add: (a,b) => a + b,
+    subtract: (a,b) => a - b,
+    multiply: (a,b) => a * b,
+    divide: (a,b) => {
+      if (b === 0) throw new Error('Error');
+      return a / b;
+    }
+  };
+})();
