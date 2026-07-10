@@ -1,7 +1,7 @@
 (function() {
   // Calculator logic
   const display = document.getElementById('display');
-  let current = '0', operator = null, operand = null, resetNext = false;
+  let current = '0', operator = null, operand = null, resetNext = false, error = false;
 
   function setDisplay(val) {
     display.textContent = val;
@@ -12,10 +12,12 @@
     operator = null;
     operand = null;
     resetNext = false;
+    error = false;
     setDisplay(current);
   }
 
   function backspace() {
+    if (error) return;
     if (resetNext) return;
     if (current.length > 1) {
       current = current.slice(0, -1);
@@ -26,6 +28,7 @@
   }
 
   function inputNumber(num) {
+    if (error) return;
     if (resetNext) {
       current = num;
       resetNext = false;
@@ -37,6 +40,7 @@
   }
 
   function inputDecimal() {
+    if (error) return;
     if (resetNext) {
       current = '0.';
       resetNext = false;
@@ -47,8 +51,10 @@
   }
 
   function inputOperator(op) {
+    if (error) return;
     if (operator && !resetNext) {
       compute();
+      if (error) return;
     }
     operand = parseFloat(current);
     operator = op;
@@ -56,6 +62,7 @@
   }
 
   function compute() {
+    if (error) return;
     if (operator && operand != null) {
       let result;
       const currVal = parseFloat(current);
@@ -78,6 +85,7 @@
         operator = null;
         operand = null;
         resetNext = true;
+        error = true;
       }
     }
   }
