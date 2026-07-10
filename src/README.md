@@ -1,0 +1,1 @@
+Calculator logic library (add, subtract, multiply, divide) exported for use in app and tests.
