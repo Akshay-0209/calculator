@@ -1,4 +1,3 @@
-// src/calculator.js
 let errorState = false;
 
 function isValidNumber(n) {
@@ -9,22 +8,32 @@ function assertNotInError() {
   if (errorState) throw new Error('Calculator in error state');
 }
 
+function throwIfInvalidResult(result) {
+  if (Number.isNaN(result) || !isFinite(result)) {
+    throw new TypeError('Result is not a valid number');
+  }
+  return result;
+}
+
 function add(a, b) {
   assertNotInError();
   if (!isValidNumber(a) || !isValidNumber(b)) throw new TypeError('Invalid number input');
-  return a + b;
+  const result = a + b;
+  return throwIfInvalidResult(result);
 }
 
 function subtract(a, b) {
   assertNotInError();
   if (!isValidNumber(a) || !isValidNumber(b)) throw new TypeError('Invalid number input');
-  return a - b;
+  const result = a - b;
+  return throwIfInvalidResult(result);
 }
 
 function multiply(a, b) {
   assertNotInError();
   if (!isValidNumber(a) || !isValidNumber(b)) throw new TypeError('Invalid number input');
-  return a * b;
+  const result = a * b;
+  return throwIfInvalidResult(result);
 }
 
 function divide(a, b) {
@@ -34,7 +43,8 @@ function divide(a, b) {
     errorState = true;
     throw new Error('Divide by zero');
   }
-  return a / b;
+  const result = a / b;
+  return throwIfInvalidResult(result);
 }
 
 function clearError() {
