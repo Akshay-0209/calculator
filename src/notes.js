@@ -13,25 +13,39 @@ function validateNoteInput(input) {
 
 function createNote(notesStore, input, nextId) {
   const { title, content } = validateNoteInput(input);
+  const now = new Date().toISOString();
   const note = {
     id: nextId,
     title,
     content,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: now,
+    updatedAt: now,
   };
   return note;
+}
+
+function generateUniqueTimestamp(compareTo) {
+  // Ensures the returned ISO timestamp is not equal to compareTo
+  let now = Date.now();
+  let compare = Date.parse(compareTo);
+  // If the timestamps are equal (to the ms), increment by 1ms
+  if (now <= compare) {
+    now = compare + 1;
+  }
+  return new Date(now).toISOString();
 }
 
 function updateNote(notesStore, id, input) {
   const idx = notesStore.findIndex(n => n.id === id);
   if (idx === -1) throw new Error('Note not found.');
   const { title, content } = validateNoteInput(input);
+  const createdAt = notesStore[idx].createdAt;
+  const updatedAt = generateUniqueTimestamp(createdAt);
   notesStore[idx] = {
     ...notesStore[idx],
     title,
     content,
-    updatedAt: new Date().toISOString(),
+    updatedAt,
   };
   return notesStore[idx];
 }
