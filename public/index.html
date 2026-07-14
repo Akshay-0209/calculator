@@ -1,42 +1,196 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notes Manager</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Calculator</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #282c34;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+        }
+        .calculator {
+            background: #1e1e1e;
+            border-radius: 15px;
+            box-shadow: 0 0 20px #61dafb;
+            width: 320px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 15px;
+        }
+        .display {
+            grid-column: span 4;
+            background: #000;
+            color: #0ff;
+            font-size: 2.2rem;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: right;
+            overflow-wrap: break-word;
+            min-height: 60px;
+            user-select: none;
+        }
+        button {
+            font-size: 1.5rem;
+            border: none;
+            border-radius: 10px;
+            background: #333;
+            color: #0ff;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            user-select: none;
+        }
+        button.operator {
+            background: #00bcd4;
+            color: #fff;
+        }
+        button.control {
+            background: #f44336;
+            color: #fff;
+        }
+        button:hover {
+            background: #61dafb;
+            color: #000;
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>Notes Manager</h1>
-      <div class="search-bar">
-        <input type="text" id="search" placeholder="Search notes..." autocomplete="off">
-      </div>
-    </header>
+    <div class="calculator" role="application" aria-label="Calculator">
+        <div class="display" id="display" aria-live="polite" aria-atomic="true">0</div>
+        <button type="button" class="control" id="clear" aria-label="Clear">C</button>
+        <button type="button" class="control" id="backspace" aria-label="Backspace">⌫</button>
+        <button type="button" class="operator" data-operator="÷" aria-label="Divide">÷</button>
+        <button type="button" class="operator" data-operator="×" aria-label="Multiply">×</button>
+        <button type="button" class="number" data-number="7">7</button>
+        <button type="button" class="number" data-number="8">8</button>
+        <button type="button" class="number" data-number="9">9</button>
+        <button type="button" class="operator" data-operator="-" aria-label="Subtract">-</button>
+        <button type="button" class="number" data-number="4">4</button>
+        <button type="button" class="number" data-number="5">5</button>
+        <button type="button" class="number" data-number="6">6</button>
+        <button type="button" class="operator" data-operator="+" aria-label="Add">+</button>
+        <button type="button" class="number" data-number="1">1</button>
+        <button type="button" class="number" data-number="2">2</button>
+        <button type="button" class="number" data-number="3">3</button>
+        <button type="button" class="operator" id="equals" aria-label="Equals">=</button>
+        <button type="button" class="number" data-number="0" style="grid-column: span 2;">0</button>
+        <button type="button" class="number" data-number=".">.</button>
+    </div>
+    <script>
+        (function() {
+            const display = document.getElementById('display');
+            let currentInput = '';
+            let lastInput = '';
+            let operator = null;
+            let resetNext = false;
 
-    <main>
-      <section id="notes-list" class="notes-list"></section>
-      <section class="editor-section">
-        <form id="note-form">
-          <h2 id="form-title">Create Note</h2>
-          <div class="form-group">
-            <label for="title">Title</label>
-            <input type="text" id="title" maxlength="100" required>
-          </div>
-          <div class="form-group">
-            <label for="content">Content</label>
-            <textarea id="content" maxlength="1000" required></textarea>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn primary" id="save-btn">Save</button>
-            <button type="button" class="btn" id="cancel-btn" style="display:none;">Cancel</button>
-          </div>
-          <div id="form-message" class="form-message"></div>
-        </form>
-      </section>
-    </main>
-  </div>
-  <script src="app.js"></script>
+            function updateDisplay(value) {
+                display.textContent = value;
+            }
+
+            function appendNumber(number) {
+                if (resetNext) {
+                    currentInput = number;
+                    resetNext = false;
+                } else {
+                    if (number === '.' && currentInput.includes('.')) return;
+                    currentInput += number;
+                }
+                updateDisplay(currentInput);
+            }
+
+            function chooseOperator(op) {
+                if (currentInput === '' && op !== '-') return; // allow negative number start
+                if (operator !== null) {
+                    calculate();
+                }
+                operator = op;
+                lastInput = currentInput;
+                currentInput = '';
+            }
+
+            function calculate() {
+                let result;
+                const prev = parseFloat(lastInput);
+                const current = parseFloat(currentInput);
+                if (isNaN(prev) || isNaN(current)) return;
+                switch(operator) {
+                    case '+':
+                        result = prev + current;
+                        break;
+                    case '-':
+                        result = prev - current;
+                        break;
+                    case '×':
+                        result = prev * current;
+                        break;
+                    case '÷':
+                        if (current === 0) {
+                            alert('Error: Division by zero');
+                            clear();
+                            return;
+                        }
+                        result = prev / current;
+                        break;
+                    default:
+                        return;
+                }
+                currentInput = result.toString();
+                operator = null;
+                lastInput = '';
+                updateDisplay(currentInput);
+                resetNext = true;
+            }
+
+            function clear() {
+                currentInput = '';
+                lastInput = '';
+                operator = null;
+                resetNext = false;
+                updateDisplay('0');
+            }
+
+            function backspace() {
+                if (resetNext) {
+                    clear();
+                    return;
+                }
+                currentInput = currentInput.slice(0, -1);
+                if (currentInput === '') {
+                    updateDisplay('0');
+                } else {
+                    updateDisplay(currentInput);
+                }
+            }
+
+            document.querySelectorAll('button.number').forEach(button => {
+                button.addEventListener('click', () => {
+                    appendNumber(button.dataset.number);
+                });
+            });
+
+            document.querySelectorAll('button.operator').forEach(button => {
+                button.addEventListener('click', () => {
+                    if (button.id === 'equals') {
+                        calculate();
+                    } else {
+                        chooseOperator(button.dataset.operator);
+                    }
+                });
+            });
+
+            document.getElementById('clear').addEventListener('click', clear);
+            document.getElementById('backspace').addEventListener('click', backspace);
+        })();
+    </script>
 </body>
 </html>
